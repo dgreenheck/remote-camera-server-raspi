@@ -1,4 +1,4 @@
-# rpi-security-camera-server
+# security-camera-server-raspi
 
 ## WARNING
 **NOTE: Please use this software at your own risk. This project is designed to be an example of a home security system and does not have the appropriate security protocols in place. By opening your web server up to the public, you are putting yourself at risk for a hacker to access videos of your home.**
