@@ -1,55 +1,69 @@
 var http = require('http');
 var url = require('url');
+const fs = require('fs');
 var mongo = require('mongodb');
 var MongoClient = require('mongodb').MongoClient;
 var Server = require('mongodb').Server;
 
-http.createServer(function(req,res) {
-  // Get the arguments in the request URL
-  var q = url.parse(req.url, true).query;
+function getFileSizeInBytes(filename) {
+  var stats = fs.statSync(filename)
+  var fileSizeInBytes = stats["size"]
+  return fileSizeInBytes
+}
 
-  // Build connection string for database
-  var connectionString = 'mongodb://'
-  connectionString = connectionString.concat(q.user,':',q.pass,'@localhost:27017/image_db')
-  console.log(connectionString)
-  
-  MongoClient.connect(connectionString, function(err,db) {
-    // Check for error in accessing database
-    if (err) {
-      console.log(err.message);
-      if(err.message == 'auth fails') {
-        // HTTP 401: Unauthorized
-        res.writeHead(401);
-        res.end();
-        return;
-      }
-      else {
-        // HTTP 500: Internal Server Error
-        res.writeHead(500);
-        res.end();
-        return;
+// Directory where the video recordings are stored
+const recordingsDir = '//home/admin/recordings/'
+
+http.createServer(function(req,res) {
+  // Parse the client request URL
+  var q = url.parse(req.url, true);
+  // Get the arguments in the request URL
+  console.log(q.pathname);
+
+  // Access security camera recordings
+  if(q.pathname == '/recordings') {
+    // If query is empty, return list of filenames
+    if(Object.keys(q.query).length === 0) {
+      console.log('Returning list of filenames')
+      fs.readdir(recordingsDir, (err, files) => {
+        if(err) {
+          // Directory not found
+          res.writeHead(404);
+          res.end();
+          return;
+        }
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify(files));
+      });
+    }
+    else {
+      // Client requested specific file
+      if(q.query.name) {
+        console.log(q.query.name);
+        // Get the file with the filename
+        filename = recordingsDir.concat(q.query.name);
+
+        fs.readFile(filename, function(err, data) {
+          if(err) {
+            // File not fou8nd
+            res.writeHead(404);
+            res.end();
+            return;
+          }
+          // Return file data
+          res.writeHead(200, {
+            'Content-Type': 'video/mp4',
+            'Content-Length': getFileSizeInBytes(filename)});
+
+      	  res.end(data);
+        });
       }
     }
-    console.log("Successfully connected to MongoDB");
-
-    // Connect to the database
-    var dbo = db.db("image_db");
-
-    // Form query to retrieve image data
-    dbo.collection("images").findOne({}, function(err, result) {
-      if (err) throw err;
-
-      if(result) {
-      	// HTTP 200: Success
-      	res.writeHead(200, {'Content-Type': 'text/html'});
-      	res.write(JSON.stringify(result));
-      	res.end();
-      }
-      else {
-      	// HTTP 404: Not Found
-      	res.writeHead(404);
-      	res.end();
-      }
-    });
-  });
+  }
+  else {
+    // HTTP 404: Not Found
+    res.writeHead(404, {'Content-Type': 'text/plain'})
+    res.end('File not found');
+  }
 }).listen(80);
+console.log('Listening on Port 80...')
