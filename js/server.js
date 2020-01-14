@@ -11,6 +11,76 @@ function getFileSizeInBytes(filename) {
   return fileSizeInBytes
 }
 
+function serveVideo(filename,req,res) {
+  fs.stat(filename, function(err, stats) {
+    if (err) {
+      if (err.code === 'ENOENT') {
+        res.writeHead(404);
+        res.end();
+        return;
+      }
+    }
+
+    var start;
+    var end;
+    var total = 0;
+    var contentRange = false;  // True if sending partial data
+    var contentLength = 0;
+
+    var range = req.headers.range;
+    // If a range is specified in the header, parse it
+    if (range) {
+      var positions = range.replace(/bytes=/, "").split("-");
+      start = parseInt(positions[0], 10);
+      total = stats.size;
+
+      // If no end specified, serve rest of the file
+      end = positions[1] ? parseInt(positions[1], 10) : total - 1;
+
+      var chunksize = (end - start) + 1;
+      contentRange = true;
+      contentLength = chunksize;
+    }
+    // Otherwise serve the entire file
+    else {
+      start = 0;
+      end = stats.size;
+      contentLength = stats.size
+    }
+
+    if (start <= end) {
+      var responseCode = 200;
+      var responseHeader = {
+        "Accept-Ranges": "bytes",
+        "Content-Length": contentLength,
+        "Content-Type": "video/mp4"
+      };
+      // If sending partial data, specify the range in the header
+      if (contentRange) {
+        responseCode = 206;
+        responseHeader["Content-Range"] = "bytes " + start + "-" + end + "/" + total;
+      }
+      res.writeHead(responseCode, responseHeader);
+
+      var stream = fs.createReadStream(filename, { start: start, end: end}).on("readable", function() {
+        var chunk;
+        while (null !== (chunk = stream.read(1024))) {
+           res.write(chunk);
+        }
+      }).on("error", function(err) {
+        res.end(err);
+      }).on("end", function(err) {
+        res.end();
+      });
+    }
+    else {
+      // HTTP 403: Forbidden
+      res.writeHead(403);
+      res.end();
+    }
+  });
+}
+
 // Directory where the video recordings are stored
 const recordingsDir = '//home/admin/recordings/'
 
@@ -42,21 +112,7 @@ http.createServer(function(req,res) {
         console.log(q.query.name);
         // Get the file with the filename
         filename = recordingsDir.concat(q.query.name);
-
-        fs.readFile(filename, function(err, data) {
-          if(err) {
-            // File not fou8nd
-            res.writeHead(404);
-            res.end();
-            return;
-          }
-          // Return file data
-          res.writeHead(200, {
-            'Content-Type': 'video/mp4',
-            'Content-Length': getFileSizeInBytes(filename)});
-
-      	  res.end(data);
-        });
+        serveVideo(filename,req,res);
       }
     }
   }

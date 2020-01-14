@@ -11,12 +11,12 @@ def encode_h264_to_mp4(framerate,input,output):
   #  - input: Input .h264 video path
   #  - output: Output .mp4 video path
   print('Encoding .h264 to .mp4 ({input} -> {output})'.format(input=input, output=output))
-  command = 'ffmpeg -i "{input}" -vcodec libx264 -profile:v main -level 3.1 -preset ultrafast -crf 23 -x264-params ref=4  -acodec copy -movflags +faststart "{output}"'.format(input=input, output=output)
+  command = 'ffmpeg -i "{input}" -c:v copy  -c:a copy -movflags +faststart "{output}"'.format(input=input, output=output)
   print(command)
   subprocess.call(command, shell=True)
 
 # Length in seconds of each video file
-FILE_TIME_LIMIT = 1
+FILE_TIME_LIMIT = 10
 # Framerate (frames per second)
 FRAMERATE = 30
 
