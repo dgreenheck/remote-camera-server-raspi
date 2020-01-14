@@ -1,9 +1,7 @@
 var http = require('http');
 var url = require('url');
+var path = require('path');
 const fs = require('fs');
-var mongo = require('mongodb');
-var MongoClient = require('mongodb').MongoClient;
-var Server = require('mongodb').Server;
 
 function getFileSizeInBytes(filename) {
   var stats = fs.statSync(filename)
@@ -90,20 +88,27 @@ http.createServer(function(req,res) {
   // Get the arguments in the request URL
   console.log(q.pathname);
 
-  // Access security camera recordings
-  if(q.pathname == '/recordings') {
+  // Access security camera videos
+  if(q.pathname == '/videos') {
     // If query is empty, return list of filenames
     if(Object.keys(q.query).length === 0) {
-      console.log('Returning list of filenames')
-      fs.readdir(recordingsDir, (err, files) => {
+      console.log('Returning list of videos')
+      fs.readdir(recordingsDir, withFileTypes=(err, files) => {
         if(err) {
           // Directory not found
           res.writeHead(404);
           res.end();
           return;
         }
+        // Filter files in directory by .mp4 extension
+        var videoFilenames = files.filter(function(file) {
+          return path.extname(file).toLowerCase() === '.mp4'
+        });
+        // Trim the file extension
+        videoFilenames = videoFilenames.map(x => path.parse(x).name);
+        // Write array of filenames to the response
         res.writeHead(200, {'Content-Type': 'application/json'});
-        res.end(JSON.stringify(files));
+        res.end(JSON.stringify(videoFilenames));
       });
     }
     else {
