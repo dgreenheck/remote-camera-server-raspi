@@ -1,10 +1,10 @@
 # security-camera-server-raspi
 
 ## WARNING
-**NOTE: Please use this software at your own risk. This project is designed to be an example of a home security system and does not have the appropriate security protocols in place. By opening your web server up to the public, you are putting yourself at risk for a hacker to access videos of your home.**
+**NOTE: Please use this software at your own risk. This project does not implement industry accepted security protocols for public remote access. This software is provided for educational and informational purposes only. Please read the included LICENSE.TXT for further information.**
 
 ## Introduction
-This repository contains code to setup a Raspberry Pi as a home security camera using the on-board camera (sold separately).
+This repository contains code to setup a Raspberry Pi as a remote camera using the on-board camera (sold separately). Potential uses include a webcam to monitor weather conditions, animal activity, or a home monitoring system.
 
 ## What You Need
 
