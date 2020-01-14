@@ -71,11 +71,17 @@ sudo apt-get update
 sudo apt-get install python3-camera
 ```
 
-### 4. Install Git
+### 4. Install ffmpeg
+ffmpeg is need to convert the raw video stream from the camera to .mp4
+```
+sudo apt-get install ffmpeg
+```
+
+### 5. Install Git
 ```
 sudo apt-get install git
 ```
 
-### 5. Clone this Repostiroy
+### 6. Clone this Repository
 ```
 git clone https://github.com/dgreenheck/rpi-security-camera-server.git
