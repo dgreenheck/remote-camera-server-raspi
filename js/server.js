@@ -2,13 +2,21 @@ var http = require('http');
 var url = require('url');
 var path = require('path');
 const fs = require('fs');
+const SimpleNodeLogger = require('simple-node-logger'),
+  opts = {
+    logFilePath:'/home/admin/logs/server.log',
+    timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS'
+  },
+log = SimpleNodeLogger.createSimpleFileLogger(opts);
 
+// Returns the size of the file in bytes
 function getFileSizeInBytes(filename) {
   var stats = fs.statSync(filename)
   var fileSizeInBytes = stats["size"]
   return fileSizeInBytes
 }
 
+// Serves a video either as a range of bytes or the entire video
 function serveVideo(filename,req,res) {
   fs.stat(filename, function(err, stats) {
     if (err) {
@@ -86,13 +94,12 @@ http.createServer(function(req,res) {
   // Parse the client request URL
   var q = url.parse(req.url, true);
   // Get the arguments in the request URL
-  console.log(q.pathname);
+  log.info(req.url);
 
   // Access security camera videos
   if(q.pathname == '/recordings') {
     // If query is empty, return list of filenames
     if(Object.keys(q.query).length === 0) {
-      console.log('Returning list of videos')
       fs.readdir(recordingsDir, withFileTypes=(err, files) => {
         if(err) {
           // Directory not found
@@ -116,13 +123,11 @@ http.createServer(function(req,res) {
       if(q.query.video) {
         // Get the video with the filename
         filename = recordingsDir.concat(q.query.video);
-        console.log('Serving ' + filename);
         serveVideo(filename,req,res);
       }
       else if(q.query.preview) {
         filename = recordingsDir.concat(q.query.preview);
         res.writeHead(200, {'Content-Type': 'image/jpeg'});
-        console.log('Serving ' +  filename);
         // Read the image file from disk
         fs.readFile(filename, function(err, data) {
           if(err) {
@@ -146,4 +151,4 @@ http.createServer(function(req,res) {
     res.end('File not found');
   }
 }).listen(80);
-console.log('Listening on Port 80...')
+log.info('Listening on Port 80...')
