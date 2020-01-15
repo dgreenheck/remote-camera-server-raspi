@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Start the server
-sudo node ./js/server.js&
+node /home/admin/remote-camera-server-raspi/js/server.js&
 # Start the security camera
-sudo ./python/camera.py&
+/home/admin/remote-camera-server-raspi/python/camera.py&
 # Start the cleanup script that will delete video files older than 8 hours
-sudo ./python/cleanup.py 28800&
+/home/admin/remote-camera-server-raspi/python/cleanup.py 28800&
 

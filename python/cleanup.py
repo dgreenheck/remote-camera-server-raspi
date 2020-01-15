@@ -14,6 +14,8 @@ logging.basicConfig(filename=log_file,\
                     format='%(asctime)s %(message)s',\
                     datefmt='%m/%d/%Y %H:%M:%S')
 
+logging.info('=============================================')
+
 # Run this script every 3600 seconds
 sleep_time = 3600
 

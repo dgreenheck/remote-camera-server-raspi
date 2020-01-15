@@ -29,9 +29,10 @@ logging.basicConfig(filename=log_file,\
                     format='%(asctime)s %(message)s',\
                     datefmt='%m/%d/%Y %H:%M:%S')
 
+logging.info('===============================')
 
 # Length in seconds of each video file
-FILE_TIME_LIMIT = 600
+FILE_TIME_LIMIT = 300
 # Framerate (frames per second)
 FRAMERATE = 2
 
