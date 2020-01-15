@@ -89,7 +89,7 @@ http.createServer(function(req,res) {
   console.log(q.pathname);
 
   // Access security camera videos
-  if(q.pathname == '/videos') {
+  if(q.pathname == '/recordings') {
     // If query is empty, return list of filenames
     if(Object.keys(q.query).length === 0) {
       console.log('Returning list of videos')
@@ -112,12 +112,31 @@ http.createServer(function(req,res) {
       });
     }
     else {
-      // Client requested specific file
-      if(q.query.name) {
-        console.log(q.query.name);
-        // Get the file with the filename
-        filename = recordingsDir.concat(q.query.name);
+      // Client requeted specific file
+      if(q.query.video) {
+        // Get the video with the filename
+        filename = recordingsDir.concat(q.query.video);
+        console.log('Serving ' + filename);
         serveVideo(filename,req,res);
+      }
+      else if(q.query.preview) {
+        filename = recordingsDir.concat(q.query.preview);
+        res.writeHead(200, {'Content-Type': 'image/jpeg'});
+        console.log('Serving ' +  filename);
+        // Read the image file from disk
+        fs.readFile(filename, function(err, data) {
+          if(err) {
+            // File not found
+            res.writeHead(404);
+            res.end('File Not Found');
+            return;
+          }
+          res.end(data);
+        });
+      }
+      else {
+        res.writeHead(404);
+        res.end('File Not Found');
       }
     }
   }
